@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Unlock — Vault</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 1C8.676 1 6 3.676 6 7v1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v1H8V7c0-2.276 1.724-4 4-4zm0 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+      </svg>
+    </div>
+    <h1>Unlock Vault</h1>
+    <p class="auth-subtitle">Enter your 6-digit PIN to access your passwords.</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/unlock" autocomplete="off" id="unlock-form">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+      <div class="form-group">
+        <label for="pin">PIN</label>
+        <div class="pin-input-wrap">
+          <input
+            type="password"
+            id="pin"
+            name="pin"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            placeholder="••••••"
+            autocomplete="current-password"
+            required
+            autofocus
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="unlock-btn">
+        <span id="unlock-btn-text">Unlock</span>
+        <span id="unlock-btn-spinner" class="spinner hidden"></span>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // Show spinner during Argon2 key derivation (can take ~1s)
+    document.getElementById('unlock-form').addEventListener('submit', function () {
+      const btn = document.getElementById('unlock-btn');
+      btn.disabled = true;
+      document.getElementById('unlock-btn-text').textContent = 'Unlocking…';
+      document.getElementById('unlock-btn-spinner').classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>

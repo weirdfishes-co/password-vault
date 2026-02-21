@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Setup — Vault</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-card">
+    <div class="auth-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 1C8.676 1 6 3.676 6 7v1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v1H8V7c0-2.276 1.724-4 4-4zm0 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+      </svg>
+    </div>
+    <h1>Create Your Vault</h1>
+    <p class="auth-subtitle">Choose a 6-digit PIN to protect your passwords. This PIN cannot be recovered if lost.</p>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form method="POST" action="/setup" autocomplete="off">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+      <div class="form-group">
+        <label for="pin">Create PIN</label>
+        <div class="pin-input-wrap">
+          <input
+            type="password"
+            id="pin"
+            name="pin"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            placeholder="••••••"
+            autocomplete="new-password"
+            required
+            autofocus
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="pin_confirm">Confirm PIN</label>
+        <div class="pin-input-wrap">
+          <input
+            type="password"
+            id="pin_confirm"
+            name="pin_confirm"
+            inputmode="numeric"
+            pattern="[0-9]{6}"
+            maxlength="6"
+            placeholder="••••••"
+            autocomplete="new-password"
+            required
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full">Create Vault</button>
+    </form>
+
+    <div class="auth-security-note">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1zm3 8V5.5a3 3 0 1 0-6 0V9h6z" clip-rule="evenodd" />
+      </svg>
+      Encrypted with Argon2id + AES-256-GCM. Your PIN never leaves this device.
+    </div>
+  </div>
+</body>
+</html>

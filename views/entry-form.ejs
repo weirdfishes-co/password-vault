@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title><%= pageTitle %> — Vault</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="vault-page">
+
+  <header class="vault-header">
+    <div class="vault-header-inner">
+      <a href="/vault" class="vault-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1C8.676 1 6 3.676 6 7v1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v1H8V7c0-2.276 1.724-4 4-4zm0 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+        </svg>
+        Vault
+      </a>
+    </div>
+  </header>
+
+  <main class="form-page">
+    <div class="form-card">
+      <h1 class="form-title"><%= pageTitle %></h1>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form
+        method="POST"
+        action="<%= action %>"
+        autocomplete="off"
+        spellcheck="false"
+      >
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+
+        <div class="form-group">
+          <label for="title">Title <span class="required">*</span></label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            value="<%= entry ? entry.title : '' %>"
+            placeholder="e.g. GitHub, Gmail…"
+            maxlength="200"
+            required
+            autofocus
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="username">Username / Email</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            value="<%= entry ? entry.username : '' %>"
+            placeholder="user@example.com"
+            maxlength="500"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-field">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value="<%= entry ? entry.password : '' %>"
+              placeholder="Enter or generate a password"
+              maxlength="2000"
+              autocomplete="new-password"
+            />
+            <button type="button" class="btn btn-ghost btn-icon" id="toggle-pw" title="Show/hide password">
+              <svg id="eye-show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+                <path fill-rule="evenodd" d="M.664 10.59a1.651 1.651 0 0 1 0-1.186A10.004 10.004 0 0 1 10 3c4.257 0 7.893 2.66 9.336 6.41.147.381.146.804 0 1.186A10.004 10.004 0 0 1 10 17c-4.257 0-7.893-2.66-9.336-6.41zM14 10a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" clip-rule="evenodd" />
+              </svg>
+              <svg id="eye-hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="hidden">
+                <path fill-rule="evenodd" d="M3.28 2.22a.75.75 0 0 0-1.06 1.06l14.5 14.5a.75.75 0 1 0 1.06-1.06l-1.745-1.745a10.029 10.029 0 0 0 3.3-4.38 1.651 1.651 0 0 0 0-1.185A10.004 10.004 0 0 0 9.999 3a9.956 9.956 0 0 0-4.744 1.194L3.28 2.22zM7.752 6.69l1.092 1.092a2.5 2.5 0 0 1 3.374 3.373l1.091 1.092a4 4 0 0 0-5.557-5.557z" clip-rule="evenodd" />
+                <path d="M10.748 13.93l2.523 2.524a9.987 9.987 0 0 1-3.27.547c-4.258 0-7.894-2.66-9.337-6.41a1.651 1.651 0 0 1 0-1.186A10.007 10.007 0 0 1 2.839 6.02L6.07 9.252a4 4 0 0 0 4.678 4.678z" />
+              </svg>
+            </button>
+          </div>
+          <!-- Password generator -->
+          <div class="generator-bar">
+            <button type="button" class="btn btn-ghost btn-xs" id="gen-btn">Generate strong password</button>
+            <div class="generator-options hidden" id="gen-options">
+              <label>
+                Length: <span id="len-display">20</span>
+                <input type="range" id="gen-length" min="12" max="64" value="20" />
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="gen-symbols" checked /> Symbols
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="gen-numbers" checked /> Numbers
+              </label>
+              <button type="button" class="btn btn-primary btn-xs" id="gen-apply">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="url">URL</label>
+          <input
+            type="url"
+            id="url"
+            name="url"
+            value="<%= entry ? entry.url : '' %>"
+            placeholder="https://example.com"
+            maxlength="2000"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="notes">Notes</label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows="4"
+            placeholder="Any additional notes…"
+            maxlength="5000"
+          ><%= entry ? entry.notes : '' %></textarea>
+        </div>
+
+        <div class="form-actions">
+          <a href="/vault" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    // ── Show / hide password ──────────────────────────────────────────────────
+    (function () {
+      const input = document.getElementById('password');
+      const btn = document.getElementById('toggle-pw');
+      const eyeShow = document.getElementById('eye-show');
+      const eyeHide = document.getElementById('eye-hide');
+      btn.addEventListener('click', function () {
+        const isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        eyeShow.classList.toggle('hidden', isHidden);
+        eyeHide.classList.toggle('hidden', !isHidden);
+      });
+    })();
+
+    // ── Password generator ────────────────────────────────────────────────────
+    (function () {
+      const genBtn = document.getElementById('gen-btn');
+      const genOpts = document.getElementById('gen-options');
+      const lenSlider = document.getElementById('gen-length');
+      const lenDisplay = document.getElementById('len-display');
+      const genSymbols = document.getElementById('gen-symbols');
+      const genNumbers = document.getElementById('gen-numbers');
+      const applyBtn = document.getElementById('gen-apply');
+      const pwInput = document.getElementById('password');
+
+      genBtn.addEventListener('click', function () {
+        genOpts.classList.toggle('hidden');
+      });
+
+      lenSlider.addEventListener('input', function () {
+        lenDisplay.textContent = lenSlider.value;
+      });
+
+      function generatePassword(length, useSymbols, useNumbers) {
+        const lower = 'abcdefghijklmnopqrstuvwxyz';
+        const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const digits = '0123456789';
+        const symbols = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+        let charset = lower + upper;
+        if (useNumbers) charset += digits;
+        if (useSymbols) charset += symbols;
+        const arr = new Uint32Array(length);
+        crypto.getRandomValues(arr);
+        return Array.from(arr, v => charset[v % charset.length]).join('');
+      }
+
+      applyBtn.addEventListener('click', function () {
+        const pw = generatePassword(
+          parseInt(lenSlider.value),
+          genSymbols.checked,
+          genNumbers.checked
+        );
+        pwInput.type = 'text';
+        pwInput.value = pw;
+        document.getElementById('eye-show').classList.add('hidden');
+        document.getElementById('eye-hide').classList.remove('hidden');
+        genOpts.classList.add('hidden');
+      });
+    })();
+  </script>
+</body>
+</html>

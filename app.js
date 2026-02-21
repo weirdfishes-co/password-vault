@@ -29,6 +29,16 @@ const app = express();
 // Trust Railway's proxy (correct IP for rate limiting + secure cookies)
 if (IS_PROD) app.set('trust proxy', 1);
 
+// Redirect HTTP → HTTPS in production
+if (IS_PROD) {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] === 'http') {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 

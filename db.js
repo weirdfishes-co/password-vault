@@ -37,46 +37,37 @@ db.exec(`
   );
 `);
 
-// ── vault_config helpers ─────────────────────────────────────────────────────
-
-const stmtGetConfig = db.prepare('SELECT * FROM vault_config WHERE id = 1');
-const stmtInsertConfig = db.prepare(
-  'INSERT INTO vault_config (id, salt, verification) VALUES (1, ?, ?)'
-);
-const stmtIncrementAttempts = db.prepare(
-  'UPDATE vault_config SET failed_attempts = failed_attempts + 1 WHERE id = 1'
-);
-const stmtLockVault = db.prepare(
-  'UPDATE vault_config SET locked_until = ?, failed_attempts = 0 WHERE id = 1'
-);
-const stmtResetAttempts = db.prepare(
-  'UPDATE vault_config SET failed_attempts = 0, locked_until = NULL WHERE id = 1'
-);
-
-// ── entries helpers ──────────────────────────────────────────────────────────
-
-const stmtGetAllEntries = db.prepare(
-  'SELECT id, encrypted_data, created_at, updated_at FROM entries ORDER BY updated_at DESC'
-);
-const stmtGetEntry = db.prepare(
-  'SELECT id, encrypted_data, created_at, updated_at FROM entries WHERE id = ?'
-);
-const stmtInsertEntry = db.prepare('INSERT INTO entries (encrypted_data) VALUES (?)');
-const stmtUpdateEntry = db.prepare(
-  'UPDATE entries SET encrypted_data = ?, updated_at = unixepoch() WHERE id = ?'
-);
-const stmtDeleteEntry = db.prepare('DELETE FROM entries WHERE id = ?');
+// node:sqlite prepared statements must NOT be cached at module level —
+// they get garbage-collected and finalized between requests. Prepare per call.
 
 module.exports = {
-  getConfig: () => stmtGetConfig.get(),
-  insertConfig: (salt, verification) => stmtInsertConfig.run(salt, verification),
-  incrementAttempts: () => stmtIncrementAttempts.run(),
-  lockVault: (lockedUntil) => stmtLockVault.run(lockedUntil),
-  resetAttempts: () => stmtResetAttempts.run(),
+  getConfig: () =>
+    db.prepare('SELECT * FROM vault_config WHERE id = 1').get(),
 
-  getAllEntries: () => stmtGetAllEntries.all(),
-  getEntry: (id) => stmtGetEntry.get(id),
-  insertEntry: (encryptedData) => stmtInsertEntry.run(encryptedData),
-  updateEntry: (id, encryptedData) => stmtUpdateEntry.run(encryptedData, id),
-  deleteEntry: (id) => stmtDeleteEntry.run(id),
+  insertConfig: (salt, verification) =>
+    db.prepare('INSERT INTO vault_config (id, salt, verification) VALUES (1, ?, ?)').run(salt, verification),
+
+  incrementAttempts: () =>
+    db.prepare('UPDATE vault_config SET failed_attempts = failed_attempts + 1 WHERE id = 1').run(),
+
+  lockVault: (lockedUntil) =>
+    db.prepare('UPDATE vault_config SET locked_until = ?, failed_attempts = 0 WHERE id = 1').run(lockedUntil),
+
+  resetAttempts: () =>
+    db.prepare('UPDATE vault_config SET failed_attempts = 0, locked_until = NULL WHERE id = 1').run(),
+
+  getAllEntries: () =>
+    db.prepare('SELECT id, encrypted_data, created_at, updated_at FROM entries ORDER BY updated_at DESC').all(),
+
+  getEntry: (id) =>
+    db.prepare('SELECT id, encrypted_data, created_at, updated_at FROM entries WHERE id = ?').get(id),
+
+  insertEntry: (encryptedData) =>
+    db.prepare('INSERT INTO entries (encrypted_data) VALUES (?)').run(encryptedData),
+
+  updateEntry: (id, encryptedData) =>
+    db.prepare('UPDATE entries SET encrypted_data = ?, updated_at = unixepoch() WHERE id = ?').run(encryptedData, id),
+
+  deleteEntry: (id) =>
+    db.prepare('DELETE FROM entries WHERE id = ?').run(id),
 };

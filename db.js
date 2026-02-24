@@ -12,9 +12,6 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
-console.log('[db] Opening database at:', DB_PATH);
-const dbFileExists = fs.existsSync(DB_PATH);
-console.log('[db] Database file already existed:', dbFileExists);
 const db = new DatabaseSync(DB_PATH);
 
 // Performance + integrity settings
@@ -39,9 +36,6 @@ db.exec(`
     updated_at INTEGER NOT NULL DEFAULT (unixepoch())
   );
 `);
-
-const configRow = db.prepare('SELECT COUNT(*) as count FROM vault_config').get();
-console.log('[db] Vault config rows in database:', configRow.count);
 
 // node:sqlite prepared statements must NOT be cached at module level —
 // they get garbage-collected and finalized between requests. Prepare per call.

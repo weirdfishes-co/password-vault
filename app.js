@@ -10,6 +10,8 @@ const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const path = require('path');
 
+const nodemailer = require('nodemailer');
+
 const { generateSalt, deriveKey, encrypt, decrypt } = require('./crypto');
 const db = require('./db');
 
@@ -361,6 +363,53 @@ app.post('/entry/:id/delete', requireAuth, (req, res) => {
   if (!db.getEntry(id)) return res.status(404).render('error', { message: 'Entry not found.' });
   db.deleteEntry(id);
   res.redirect('/vault');
+});
+
+// ── Export (email CSV) ────────────────────────────────────────────────────────
+
+app.post('/export', requireAuth, async (req, res) => {
+  const exportEmail = process.env.EXPORT_EMAIL;
+  if (!exportEmail) {
+    return res.status(503).json({ error: 'EXPORT_EMAIL is not configured on the server.' });
+  }
+
+  const key = getVaultKey(req);
+  const entries = db
+    .getAllEntries()
+    .map((row) => {
+      try { return JSON.parse(decrypt(key, row.encrypted_data)); }
+      catch { return null; }
+    })
+    .filter(Boolean);
+
+  // Build CSV (RFC 4180)
+  const esc = (v) => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const csv = [
+    ['Title', 'Username', 'Password', 'URL', 'Notes'].map(esc).join(','),
+    ...entries.map((e) => [e.title, e.username, e.password, e.url, e.notes].map(esc).join(',')),
+  ].join('\r\n');
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: Number(process.env.SMTP_PORT) === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMTP_USER,
+      to: exportEmail,
+      subject: `Vault export — ${new Date().toISOString().slice(0, 10)}`,
+      text: 'Your vault export is attached. Keep this file safe and delete it after use.',
+      attachments: [{ filename: 'vault-export.csv', content: csv, contentType: 'text/csv' }],
+    });
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('Export email error:', err);
+    return res.status(500).json({ error: 'Failed to send email. Check SMTP settings in Railway.' });
+  }
 });
 
 // ── Error handler ─────────────────────────────────────────────────────────────

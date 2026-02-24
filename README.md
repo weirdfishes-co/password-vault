@@ -1,31 +1,30 @@
 # Password Vault
 
-A secure, self-hosted password manager. All credentials are encrypted at rest using AES-256-GCM and a key derived from your 6-digit PIN with Argon2id.
+A secure, self-hosted password manager. All credentials are encrypted at rest using AES-256-GCM and a key derived from your 6-digit PIN with scrypt.
 
 ## File structure
 
 ```
 ├── app.js              — Express app: routes, middleware, session management
-├── crypto.js           — Argon2id key derivation + AES-256-GCM encrypt/decrypt
+├── crypto.js           — scrypt key derivation + AES-256-GCM encrypt/decrypt
 ├── db.js               — SQLite database setup and query helpers (node:sqlite)
 ├── views/
 │   ├── setup.ejs       — First-time PIN creation
 │   ├── unlock.ejs      — PIN unlock form
-│   ├── vault.ejs       — Entry list with search, copy, edit, delete
+│   ├── vault.ejs       — Entry list with search, copy, edit, delete, download
 │   └── entry-form.ejs  — Add / edit entry form with password generator
 ├── public/
 │   └── style.css       — Dark theme, responsive layout
 ├── package.json
-├── Procfile            — Railway process definition
-├── railway.toml        — Railway build and deploy config
-└── .env.example        — Environment variable reference
+├── Procfile            — Process definition
+└── railway.toml        — Railway build and deploy config
 ```
 
 ## Security features
 
 | Feature | Detail |
 |---|---|
-| Key derivation | Argon2id — 64 MB memory, 3 iterations, 4 threads |
+| Key derivation | scrypt — 32 MB memory (N=32768, r=8, p=1) |
 | Encryption | AES-256-GCM with a random 12-byte nonce per operation |
 | PIN storage | Never stored — only a verification blob encrypted with the derived key |
 | CSRF protection | Per-session token validated on every state-changing request |
@@ -43,7 +42,7 @@ cp .env.example .env
 node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
 
 npm install
-node app.js
+npm run dev
 # Open http://localhost:3000
 ```
 
@@ -71,22 +70,33 @@ The SQLite database must survive redeploys:
 
 In Railway → your service → **Variables**:
 
-| Variable | Value |
-|---|---|
-| `SESSION_SECRET` | Random 64-byte hex — run `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
-| `DB_PATH` | `/data/vault.db` |
-| `NODE_ENV` | `production` |
+| Variable | Required | Value |
+|---|---|---|
+| `SESSION_SECRET` | Yes | Random hex — `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `DB_PATH` | Yes | `/data/vault.db` |
+| `NODE_ENV` | Yes | `production` |
+| `EXPORT_EMAIL` | For email export | Address to receive the CSV export |
+| `SMTP_HOST` | For email export | SMTP server hostname (e.g. `smtp.gmail.com`) |
+| `SMTP_PORT` | For email export | `587` (or `465` for TLS) |
+| `SMTP_USER` | For email export | SMTP login (e.g. your Gmail address) |
+| `SMTP_PASS` | For email export | SMTP password or app password |
 
 `PORT` is set automatically by Railway — do not override it.
 
 ### 5. Deploy
 
-Railway deploys automatically on every push to your connected branch. The start command is set in `railway.toml`:
+Railway deploys automatically on every push to your connected branch. The start command is set in `railway.toml` and `package.json`:
 
 ```
-node --disable-warning=ExperimentalWarning app.js
+npm start
 ```
 
 ### First run
 
 On first visit, you will be directed to `/setup` to create your 6-digit PIN. After that, the PIN cannot be recovered — if lost, the encrypted database must be deleted and a new vault started.
+
+## Email export
+
+The **Download** button on the vault page emails a CSV of all decrypted entries to the address set in `EXPORT_EMAIL`. The CSV contains: Title, Username, Password, URL, Notes.
+
+The SMTP variables above must all be set for this to work. For Gmail, generate an [App Password](https://myaccount.google.com/apppasswords) rather than using your normal account password.

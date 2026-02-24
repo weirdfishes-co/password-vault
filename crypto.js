@@ -4,7 +4,9 @@ const crypto = require('crypto');
 
 // scrypt parameters — memory-hard, ~1s on modest hardware
 // Memory usage: 128 * N * r = 128 * 32768 * 8 = 32 MB
-const SCRYPT_PARAMS = { N: 32768, r: 8, p: 1 };
+// maxmem is set explicitly to 64 MB (Node.js default is exactly 32 MB, which
+// is too tight for N=32768/r=8 on memory-constrained hosts like Railway)
+const SCRYPT_PARAMS = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 const KEY_LEN = 32;
 
 /**

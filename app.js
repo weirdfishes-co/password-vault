@@ -10,8 +10,6 @@ const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const path = require('path');
 
-const nodemailer = require('nodemailer');
-
 const { generateSalt, deriveKey, encrypt, decrypt } = require('./crypto');
 const db = require('./db');
 
@@ -52,7 +50,7 @@ app.use(
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'", "'unsafe-inline'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https://www.google.com'],
+        imgSrc: ["'self'", 'data:'],
         formAction: ["'self'"],
         frameAncestors: ["'none'"],
       },
@@ -143,12 +141,20 @@ function isSetup() {
   return db.getConfig() !== undefined;
 }
 
-// ── Rate limiter for /unlock ─────────────────────────────────────────────────
+// ── Rate limiters ─────────────────────────────────────────────────────────────
 
 const unlockLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: 'Too many unlock attempts from this IP. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const exportLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  message: 'Too many export requests. Please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -365,14 +371,9 @@ app.post('/entry/:id/delete', requireAuth, (req, res) => {
   res.redirect('/vault');
 });
 
-// ── Export (email CSV) ────────────────────────────────────────────────────────
+// ── Export (CSV download) ─────────────────────────────────────────────────────
 
-app.post('/export', requireAuth, async (req, res) => {
-  const exportEmail = process.env.EXPORT_EMAIL;
-  if (!exportEmail) {
-    return res.status(503).json({ error: 'EXPORT_EMAIL is not configured on the server.' });
-  }
-
+app.post('/export', exportLimiter, requireAuth, (req, res) => {
   const key = getVaultKey(req);
   const entries = db
     .getAllEntries()
@@ -389,27 +390,10 @@ app.post('/export', requireAuth, async (req, res) => {
     ...entries.map((e) => [e.title, e.username, e.password, e.url, e.notes].map(esc).join(',')),
   ].join('\r\n');
 
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-
-    await transporter.sendMail({
-      from: process.env.SMTP_USER,
-      to: exportEmail,
-      subject: `Vault export — ${new Date().toISOString().slice(0, 10)}`,
-      text: 'Your vault export is attached. Keep this file safe and delete it after use.',
-      attachments: [{ filename: 'vault-export.csv', content: csv, contentType: 'text/csv' }],
-    });
-
-    return res.json({ ok: true });
-  } catch (err) {
-    console.error('Export email error:', err);
-    return res.status(500).json({ error: 'Failed to send email. Check SMTP settings in Railway.' });
-  }
+  const filename = `vault-export-${new Date().toISOString().slice(0, 10)}.csv`;
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+  res.send(csv);
 });
 
 // ── Error handler ─────────────────────────────────────────────────────────────

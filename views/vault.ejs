@@ -21,7 +21,10 @@
       <div class="vault-header-actions">
         <span id="lock-timer" class="lock-timer" title="Auto-lock countdown"></span>
         <a href="/entry/new" class="btn btn-primary btn-sm">+ Add</a>
-        <button id="export-btn" class="btn btn-ghost btn-sm" title="Email vault as CSV">Download</button>
+        <form method="POST" action="/export" class="inline-form" id="export-form">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+          <button type="submit" class="btn btn-ghost btn-sm" title="Download vault as CSV">Download</button>
+        </form>
         <form method="POST" action="/logout" class="inline-form">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
           <button type="submit" class="btn btn-ghost btn-sm">Lock</button>
@@ -69,15 +72,7 @@
         <div class="entry-card" data-title="<%= entry.title.toLowerCase() %>" data-username="<%= entry.username.toLowerCase() %>" data-url="<%= entry.url.toLowerCase() %>">
           <div class="entry-card-header">
             <div class="entry-favicon">
-              <% if (entry.url) { %>
-                <img
-                  src="https://www.google.com/s2/favicons?domain=<%= encodeURIComponent(entry.url) %>&sz=32"
-                  alt=""
-                  onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-                  loading="lazy"
-                />
-              <% } %>
-              <div class="entry-favicon-fallback" <% if (entry.url) { %>style="display:none"<% } %>>
+              <div class="entry-favicon-fallback">
                 <%= entry.title.charAt(0).toUpperCase() %>
               </div>
             </div>
@@ -216,32 +211,6 @@
         }, 3000);
       }
 
-      // ── Export (email CSV) ────────────────────────────────────────────────
-      document.getElementById('export-btn').addEventListener('click', async function () {
-        if (!confirm('Send a CSV of all decrypted passwords to your configured email address?')) return;
-        const btn = this;
-        btn.disabled = true;
-        btn.textContent = 'Sending…';
-        try {
-          const res = await fetch('/export', {
-            method: 'POST',
-            headers: { 'x-csrf-token': '<%= csrfToken %>' },
-            credentials: 'same-origin',
-          });
-          const data = await res.json();
-          if (data.ok) {
-            showToast('CSV sent to your email.', 'success');
-          } else {
-            showToast(data.error || 'Export failed.', 'error');
-          }
-        } catch {
-          showToast('Export failed. Check your connection.', 'error');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = 'Download';
-        }
-      });
-
       document.querySelectorAll('.copy-btn').forEach(function (btn) {
         btn.addEventListener('click', async function () {
           const id = btn.dataset.id;
@@ -266,6 +235,11 @@
         });
       });
     })();
+
+    // ── Export confirmation ───────────────────────────────────────────────────
+    document.getElementById('export-form').addEventListener('submit', function (e) {
+      if (!confirm('Download all vault entries as a CSV file? Only do this on a trusted device.')) e.preventDefault();
+    });
 
     // ── Delete confirmation ───────────────────────────────────────────────────
     document.querySelectorAll('.delete-form').forEach(function (form) {

@@ -75,11 +75,6 @@ In Railway → your service → **Variables**:
 | `SESSION_SECRET` | Yes | Random hex — `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `DB_PATH` | Yes | `/data/vault.db` |
 | `NODE_ENV` | Yes | `production` |
-| `EXPORT_EMAIL` | For email export | Address to receive the CSV export |
-| `SMTP_HOST` | For email export | SMTP server hostname (e.g. `smtp.gmail.com`) |
-| `SMTP_PORT` | For email export | `587` (or `465` for TLS) |
-| `SMTP_USER` | For email export | SMTP login (e.g. your Gmail address) |
-| `SMTP_PASS` | For email export | SMTP password or app password |
 
 `PORT` is set automatically by Railway — do not override it.
 
@@ -95,11 +90,9 @@ npm start
 
 On first visit, you will be directed to `/setup` to create your 6-digit PIN. After that, the PIN cannot be recovered — if lost, the encrypted database must be deleted and a new vault started.
 
-## Email export
+## CSV export
 
-The **Download** button on the vault page emails a CSV of all decrypted entries to the address set in `EXPORT_EMAIL`. The CSV contains: Title, Username, Password, URL, Notes.
-
-The SMTP variables above must all be set for this to work. For Gmail, generate an [App Password](https://myaccount.google.com/apppasswords) rather than using your normal account password.
+The **Download** button on the vault page streams a CSV file directly to your browser. The CSV contains: Title, Username, Password, URL, Notes. No email or external service is involved — the file is generated server-side and downloaded over the existing HTTPS session. Delete the file after use.
 
 ## License
 

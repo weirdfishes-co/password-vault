@@ -100,3 +100,7 @@ On first visit, you will be directed to `/setup` to create your 6-digit PIN. Aft
 The **Download** button on the vault page emails a CSV of all decrypted entries to the address set in `EXPORT_EMAIL`. The CSV contains: Title, Username, Password, URL, Notes.
 
 The SMTP variables above must all be set for this to work. For Gmail, generate an [App Password](https://myaccount.google.com/apppasswords) rather than using your normal account password.
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).

@@ -13,6 +13,8 @@ if (!fs.existsSync(dbDir)) {
 }
 
 console.log('[db] Opening database at:', DB_PATH);
+const dbFileExists = fs.existsSync(DB_PATH);
+console.log('[db] Database file already existed:', dbFileExists);
 const db = new DatabaseSync(DB_PATH);
 
 // Performance + integrity settings

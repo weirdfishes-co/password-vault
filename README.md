@@ -11,7 +11,8 @@ A secure, self-hosted password manager. All credentials are encrypted at rest us
 ├── views/
 │   ├── setup.ejs       — First-time PIN creation
 │   ├── unlock.ejs      — PIN unlock form
-│   ├── vault.ejs       — Entry list with search, copy, edit, delete, download
+│   ├── vault.ejs       — Entry list with search, copy, edit, delete, download, import
+│   ├── import.ejs      — CSV import form
 │   └── entry-form.ejs  — Add / edit entry form with password generator
 ├── public/
 │   └── style.css       — Dark theme, responsive layout
@@ -93,6 +94,19 @@ On first visit, you will be directed to `/setup` to create your 6-digit PIN. Aft
 ## CSV export
 
 The **Download** button on the vault page streams a CSV file directly to your browser. The CSV contains: Title, Username, Password, URL, Notes. No email or external service is involved — the file is generated server-side and downloaded over the existing HTTPS session. Delete the file after use.
+
+## CSV import
+
+The **Import** button on the vault page lets you upload a CSV file to bulk-add entries. The expected format is the same as the export:
+
+```
+Title,Username,Password,URL,Notes
+```
+
+- The header row is detected automatically and skipped.
+- Rows without a title are skipped.
+- Fields are truncated to the same limits as manual entry (title: 200, username: 500, password: 2000, URL: 2000, notes: 5000 characters).
+- All imported data is encrypted with your vault key before being stored — the CSV itself is never saved to disk on the server.
 
 ## License
 

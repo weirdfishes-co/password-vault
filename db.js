@@ -40,6 +40,9 @@ db.exec(`
   );
 `);
 
+const configRow = db.prepare('SELECT COUNT(*) as count FROM vault_config').get();
+console.log('[db] Vault config rows in database:', configRow.count);
+
 // node:sqlite prepared statements must NOT be cached at module level —
 // they get garbage-collected and finalized between requests. Prepare per call.
 

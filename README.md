@@ -72,7 +72,7 @@ In Railway → your service → **Variables**:
 
 | Variable | Required | Value |
 |---|---|---|
-| `SESSION_SECRET` | Yes | Random hex — `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `SESSION_SECRET` | Yes | Random hex string — minimum 32 characters, recommended 128 (64 random bytes). Generate with: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `DB_PATH` | Yes | `/data/vault.db` |
 | `NODE_ENV` | Yes | `production` |
 

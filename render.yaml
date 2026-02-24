@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: vault
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      # Set these in the Render dashboard to enable email export:
+      - key: EXPORT_EMAIL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      # Optional: set to /data/vault.db if you add a persistent disk below
+      - key: DB_PATH
+        sync: false
+    # Uncomment to add a persistent disk (paid plans — keeps DB across deploys):
+    # disk:
+    #   name: vault-data
+    #   mountPath: /data
+    #   sizeGB: 1

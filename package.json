@@ -4,8 +4,8 @@
   "description": "Secure self-hosted password vault with AES-256-GCM encryption and scrypt PIN hashing",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "node --watch app.js"
+    "start": "node --experimental-sqlite --disable-warning=ExperimentalWarning app.js",
+    "dev": "node --experimental-sqlite --disable-warning=ExperimentalWarning --watch app.js"
   },
   "engines": {
     "node": ">=22.5.0"

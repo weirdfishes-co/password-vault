@@ -12,6 +12,7 @@ if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
 }
 
+console.log('[db] Opening database at:', DB_PATH);
 const db = new DatabaseSync(DB_PATH);
 
 // Performance + integrity settings

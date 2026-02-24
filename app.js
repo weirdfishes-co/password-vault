@@ -59,7 +59,7 @@ app.use(
   })
 );
 
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -394,6 +394,79 @@ app.post('/export', exportLimiter, requireAuth, (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
   res.send(csv);
+});
+
+// ── Import (CSV upload) ───────────────────────────────────────────────────────
+
+// Minimal RFC 4180 CSV parser — handles quoted fields and "" escaping
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const fields = [];
+    let i = 0;
+    while (i < line.length) {
+      if (line[i] === '"') {
+        let field = '';
+        i++; // skip opening quote
+        while (i < line.length) {
+          if (line[i] === '"' && line[i + 1] === '"') { field += '"'; i += 2; }
+          else if (line[i] === '"') { i++; break; }
+          else { field += line[i++]; }
+        }
+        fields.push(field);
+        if (line[i] === ',') i++;
+      } else {
+        const end = line.indexOf(',', i);
+        if (end === -1) { fields.push(line.slice(i)); i = line.length; }
+        else { fields.push(line.slice(i, end)); i = end + 1; }
+      }
+    }
+    rows.push(fields);
+  }
+  return rows;
+}
+
+app.get('/import', requireAuth, (_req, res) => {
+  res.render('import', { error: null });
+});
+
+app.post('/import', requireAuth, (req, res) => {
+  const csv = req.body.csv_data;
+  if (!csv || !csv.trim()) {
+    return res.render('import', { error: 'No CSV data received. Please select a file.' });
+  }
+
+  let rows;
+  try { rows = parseCSV(csv); }
+  catch { return res.render('import', { error: 'Failed to parse CSV file.' }); }
+
+  if (rows.length === 0) {
+    return res.render('import', { error: 'The CSV file is empty.' });
+  }
+
+  // Skip header row if present (first cell matches expected header)
+  const firstCell = (rows[0][0] || '').trim().toLowerCase();
+  const dataRows = firstCell === 'title' ? rows.slice(1) : rows;
+
+  const key = getVaultKey(req);
+  let imported = 0;
+  for (const row of dataRows) {
+    const title = String(row[0] || '').trim().slice(0, 200);
+    if (!title) continue; // skip rows without a title
+    const data = {
+      title,
+      username: String(row[1] || '').trim().slice(0, 500),
+      password: String(row[2] || '').slice(0, 2000),
+      url:      String(row[3] || '').trim().slice(0, 2000),
+      notes:    String(row[4] || '').trim().slice(0, 5000),
+    };
+    db.insertEntry(encrypt(key, JSON.stringify(data)));
+    imported++;
+  }
+
+  res.redirect(`/vault?imported=${imported}`);
 });
 
 // ── Error handler ─────────────────────────────────────────────────────────────

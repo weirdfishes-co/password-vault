@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Import CSV — Vault</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body class="vault-page">
+
+  <header class="vault-header">
+    <div class="vault-header-inner">
+      <a href="/vault" class="vault-logo">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 1C8.676 1 6 3.676 6 7v1H4a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1h-2V7c0-3.324-2.676-6-6-6zm0 2c2.276 0 4 1.724 4 4v1H8V7c0-2.276 1.724-4 4-4zm0 9a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/>
+        </svg>
+        Vault
+      </a>
+    </div>
+  </header>
+
+  <main class="form-page">
+    <div class="form-card">
+      <h1 class="form-title">Import CSV</h1>
+      <p class="auth-subtitle">Expected format: <strong>Title, Username, Password, URL, Notes</strong> — the same as the vault export.</p>
+
+      <% if (error) { %>
+        <div class="alert alert-error"><%= error %></div>
+      <% } %>
+
+      <form method="POST" action="/import" id="import-form" autocomplete="off">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+        <textarea name="csv_data" id="csv-data" style="display:none" aria-hidden="true"></textarea>
+
+        <div class="form-group">
+          <label for="csv-file">CSV file</label>
+          <input
+            type="file"
+            id="csv-file"
+            accept=".csv,text/csv"
+          />
+        </div>
+
+        <div class="form-actions">
+          <a href="/vault" class="btn btn-ghost">Cancel</a>
+          <button type="submit" class="btn btn-primary" id="import-btn" disabled>Import</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      const fileInput = document.getElementById('csv-file');
+      const csvData = document.getElementById('csv-data');
+      const importBtn = document.getElementById('import-btn');
+
+      fileInput.addEventListener('change', function () {
+        const file = fileInput.files[0];
+        if (!file) { importBtn.disabled = true; return; }
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          csvData.value = e.target.result;
+          importBtn.disabled = false;
+        };
+        reader.onerror = function () {
+          importBtn.disabled = true;
+        };
+        reader.readAsText(file, 'UTF-8');
+      });
+    })();
+  </script>
+</body>
+</html>

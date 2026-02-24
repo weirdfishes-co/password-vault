@@ -22,6 +22,7 @@
       <div class="vault-header-actions">
         <span id="lock-timer" class="lock-timer" title="Auto-lock countdown"></span>
         <a href="/entry/new" class="btn btn-primary btn-sm">+ Add</a>
+        <a href="/import" class="btn btn-ghost btn-sm" title="Import from CSV">Import</a>
         <form method="POST" action="/export" class="inline-form" id="export-form">
           <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
           <button type="submit" class="btn btn-ghost btn-sm" title="Download vault as CSV">Download</button>
@@ -248,6 +249,17 @@
         if (!confirm('Delete this entry? This cannot be undone.')) e.preventDefault();
       });
     });
+
+    // ── Import success toast ──────────────────────────────────────────────────
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const imported = params.get('imported');
+      if (imported !== null) {
+        const n = parseInt(imported, 10);
+        showToast(n === 1 ? 'Imported 1 entry.' : `Imported ${n} entries.`, 'success');
+        history.replaceState(null, '', '/vault');
+      }
+    })();
   </script>
 </body>
 </html>

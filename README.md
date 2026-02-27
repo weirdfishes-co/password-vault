@@ -17,6 +17,8 @@ A secure, self-hosted password manager. All credentials are encrypted at rest us
 ├── public/
 │   └── style.css       — Dark theme, responsive layout
 ├── package.json
+├── Dockerfile          — Docker image for container deployments
+├── .dockerignore       — Files excluded from the Docker build
 ├── Procfile            — Process definition
 └── railway.toml        — Railway build and deploy config
 ```
@@ -86,6 +88,41 @@ Railway deploys automatically on every push to your connected branch. The start 
 ```
 npm start
 ```
+
+### First run
+
+On first visit, you will be directed to `/setup` to create your 6-digit PIN. After that, the PIN cannot be recovered — if lost, the encrypted database must be deleted and a new vault started.
+
+## hostim.dev deployment
+
+### 1. Push to GitHub
+
+Commit all files (excluding `node_modules/`, `.env`, `*.db` — already in `.gitignore`). The `Dockerfile` and `.dockerignore` must be present in the root of the repository.
+
+### 2. Create a hostim.dev project
+
+- Connect your GitHub repository in the hostim.dev dashboard.
+- hostim.dev uses Kaniko to build the Docker image from the `Dockerfile` automatically.
+
+### 3. Configure the service
+
+In the service settings, set **HTTP Port** to `80`.
+
+### 4. Set environment variables
+
+| Variable | Required | Value |
+|---|---|---|
+| `SESSION_SECRET` | Yes | Random hex string — minimum 32 characters, recommended 128 (64 random bytes). Generate with: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `NODE_ENV` | Yes | `production` |
+| `PORT` | Yes | `80` |
+
+### 5. Persistent storage
+
+The SQLite database (`vault.db`) is stored inside the container at `/app/vault.db` by default. If hostim.dev supports persistent volumes, mount one at `/app/vault.db` (or set `DB_PATH` to a path on the volume) so data survives redeploys.
+
+### 6. Deploy
+
+hostim.dev deploys automatically on every push to your connected branch.
 
 ### First run
 

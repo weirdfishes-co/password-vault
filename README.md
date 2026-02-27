@@ -1,6 +1,6 @@
 # Password Vault
 
-A secure, self-hosted password manager. All credentials are encrypted at rest using AES-256-GCM and a key derived from your 6-digit PIN with scrypt.
+A secure, self-hosted, open source password manager. All credentials are encrypted at rest using AES-256-GCM and a key derived from your 6-digit PIN with scrypt. Deploy instructions for Railway.com (global) or Hostim.dev (europe).
 
 ## File structure
 
@@ -51,7 +51,7 @@ npm run dev
 
 Requires **Node.js >= 22.5** (uses the built-in `node:sqlite` module).
 
-## Railway deployment
+## Railway.com deployment
 
 ### 1. Push to GitHub
 
@@ -93,7 +93,7 @@ npm start
 
 On first visit, you will be directed to `/setup` to create your 6-digit PIN. After that, the PIN cannot be recovered — if lost, the encrypted database must be deleted and a new vault started.
 
-## hostim.dev deployment
+## Hostim.dev deployment
 
 ### 1. Push to GitHub
 

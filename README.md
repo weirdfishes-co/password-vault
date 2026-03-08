@@ -115,10 +115,11 @@ In the service settings, set **HTTP Port** to `80`.
 | `SESSION_SECRET` | Yes | Random hex string — minimum 32 characters, recommended 128 (64 random bytes). Generate with: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `NODE_ENV` | Yes | `production` |
 | `PORT` | Yes | `80` |
+| `DB_PATH` | Yes | `/data/vault.db` |
 
 ### 5. Persistent storage
 
-The SQLite database (`vault.db`) is stored inside the container at `/app/vault.db` by default. If hostim.dev supports persistent volumes, mount one at `/app/vault.db` (or set `DB_PATH` to a path on the volume) so data survives redeploys.
+Mount a persistent volume at `/data` in the hostim.dev service settings so the database survives redeploys. The `DB_PATH` variable (set above) tells the app to store the database on that volume.
 
 ### 6. Deploy
 

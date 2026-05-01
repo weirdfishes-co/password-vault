@@ -15,7 +15,8 @@ A secure, self-hosted, open source password manager. All credentials are encrypt
 │   ├── import.ejs      — CSV import form
 │   └── entry-form.ejs  — Add / edit entry form with password generator
 ├── public/
-│   └── style.css       — Dark theme, responsive layout
+│   ├── style.css       — Light/dark theme, responsive layout
+│   └── theme.js        — Theme switcher (cookie-based, injected into all pages)
 ├── package.json
 ├── Dockerfile          — Docker image for container deployments
 ├── .dockerignore       — Files excluded from the Docker build
@@ -128,6 +129,10 @@ hostim.dev deploys automatically on every push to your connected branch.
 ### First run
 
 On first visit, you will be directed to `/setup` to create your 6-digit PIN. After that, the PIN cannot be recovered — if lost, the encrypted database must be deleted and a new vault started.
+
+## Light / dark theme
+
+A sun/moon toggle button appears on every page. Clicking it switches between the light theme (default) and dark theme. The preference is stored in a `vault-theme` cookie with a ~400-day expiry so it persists across sessions without requiring a login. No server round-trip is needed — the theme is applied client-side before the page renders to avoid any flash.
 
 ## CSV export
 

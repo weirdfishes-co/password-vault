@@ -13,6 +13,7 @@ A secure, self-hosted, open source password manager. All credentials are encrypt
 │   ├── unlock.ejs      — PIN unlock form
 │   ├── vault.ejs       — Entry list with search, copy, edit, delete, download, import
 │   ├── import.ejs      — CSV import form
+│   ├── maintenance.ejs — Maintenance mode page
 │   └── entry-form.ejs  — Add / edit entry form with password generator
 ├── public/
 │   ├── style.css       — Light/dark theme, responsive layout
@@ -79,6 +80,7 @@ In Railway → your service → **Variables**:
 | `SESSION_SECRET` | Yes | Random hex string — minimum 32 characters, recommended 128 (64 random bytes). Generate with: `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
 | `DB_PATH` | Yes | `/data/vault.db` |
 | `NODE_ENV` | Yes | `production` |
+| `MAINTENANCE` | No | `Y` to show the maintenance page on every route (see [Maintenance mode](#maintenance-mode)) |
 
 `PORT` is set automatically by Railway — do not override it.
 
@@ -117,6 +119,7 @@ In the service settings, set **HTTP Port** to `80`.
 | `NODE_ENV` | Yes | `production` |
 | `PORT` | Yes | `80` |
 | `DB_PATH` | Yes | `/data/vault.db` |
+| `MAINTENANCE` | No | `Y` to show the maintenance page on every route (see [Maintenance mode](#maintenance-mode)) |
 
 ### 5. Persistent storage
 
@@ -129,6 +132,18 @@ hostim.dev deploys automatically on every push to your connected branch.
 ### First run
 
 On first visit, you will be directed to `/setup` to create your 6-digit PIN. After that, the PIN cannot be recovered — if lost, the encrypted database must be deleted and a new vault started.
+
+## Maintenance mode
+
+Set the environment variable `MAINTENANCE=Y` to take the app offline for users:
+
+```bash
+MAINTENANCE=Y npm start
+```
+
+Every route then returns HTTP 503 with a single page reading **"Application is in maintenance mode. Come back later"** — the vault, unlock, setup, import and export routes are all unreachable, and no database or session code runs. The value is case-insensitive; any other value (or leaving it unset) means normal operation.
+
+The variable is read once at startup, so restart or redeploy the app after changing it. On Railway and hostim.dev, updating the variable in the dashboard triggers a redeploy automatically.
 
 ## Light / dark theme
 

@@ -21,6 +21,7 @@ const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_SECONDS = 5 * 60; // 5 minutes
 const VERIFICATION_TOKEN = 'VAULT_OK_V1';
+const MAINTENANCE_MODE = String(process.env.MAINTENANCE || '').trim().toUpperCase() === 'Y';
 
 // ── App setup ────────────────────────────────────────────────────────────────
 
@@ -62,6 +63,16 @@ app.use(
 app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ── Maintenance mode ─────────────────────────────────────────────────────────
+// MAINTENANCE=Y blocks every route (static assets above are still served so the
+// maintenance page keeps its styling and theme toggle).
+
+if (MAINTENANCE_MODE) {
+  app.use((req, res) => {
+    res.status(503).set('Retry-After', '3600').render('maintenance');
+  });
+}
 
 // Session middleware
 const SESSION_SECRET = process.env.SESSION_SECRET;

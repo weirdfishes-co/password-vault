@@ -23,6 +23,7 @@ No build step. No test suite. Restart is automatic in dev mode when files change
 - **PIN never stored** — only a verification blob encrypted with the derived key; correct PIN = successful decrypt
 - **All views are standalone HTML** — EJS layout.ejs was removed; each view has its own `<!DOCTYPE html>`
 - **CSRF** — manual per-session token, validated on every POST/PUT/DELETE/PATCH in `validateCsrf` middleware
+- **Maintenance mode** — `MAINTENANCE=Y` (case-insensitive, trimmed) makes a catch-all middleware in `app.js` render `views/maintenance.ejs` with HTTP 503 for every route. It is registered after `express.static` (so CSS/theme still load) and before the session/CSRF middleware, so no vault code runs at all while enabled.
 - **Theme switcher** — `public/theme.js` injects a sun/moon button into `.vault-header-actions` (or fixed corner on auth pages); preference stored in `vault-theme` cookie (SameSite=Strict, ~400-day max-age); tiny inline `<head>` script applies theme before CSS renders to prevent flash
 
 ## Key files
@@ -35,6 +36,7 @@ No build step. No test suite. Restart is automatic in dev mode when files change
 | `public/theme.js` | Client-side theme toggle + cookie logic |
 | `views/vault.ejs` | Main vault page (search, copy, edit, delete, export) |
 | `views/entry-form.ejs` | Add / edit entry (includes password generator) |
+| `views/maintenance.ejs` | Maintenance-mode page shown when `MAINTENANCE=Y` |
 
 ## Security model
 
@@ -53,3 +55,4 @@ No build step. No test suite. Restart is automatic in dev mode when files change
 | `DB_PATH` | Path to SQLite file; defaults to `./vault.db` |
 | `NODE_ENV` | Set to `production` on Railway / Hostim |
 | `PORT` | Set automatically by Railway; defaults to 3000 |
+| `MAINTENANCE` | Set to `Y` to serve the maintenance page on every route (HTTP 503); unset/any other value = normal operation. Read once at startup — restart required to toggle |
